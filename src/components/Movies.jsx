@@ -128,6 +128,7 @@ const Movies = () => {
                     <li><a href="/sessions">Sessions</a></li>
                     <li><a href="/users">Users</a></li>
                     <li><a href="/rooms">Rooms</a></li>
+                    <li><a href="/tickets">Tickets</a></li>
                     <li><button onClick={handleLogout} className="logout-btn">LOG OUT</button></li>
                 </ul>
             </nav>

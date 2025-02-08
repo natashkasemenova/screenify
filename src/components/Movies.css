@@ -8,9 +8,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    background-color: #040223;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1px;
+    background-color: #211D54;
+
 }
 
 .nav-logo span {
@@ -26,6 +26,8 @@
     gap: 2rem;
     list-style: none;
     align-items: center;
+    font-size: 0.7rem; 
+    padding: 0.2rem 0.5rem; 
 }
 
 .nav-links a {
@@ -38,7 +40,8 @@
 }
 
 .nav-links a.active {
-    background-color: rgb(87, 75, 144);
+    background-color: #635CC3;
+    opacity: 0.5;
     box-shadow: 5px 10px 30px rgba(87, 75, 144, 0.5);
 }
 
@@ -53,15 +56,15 @@
 
 .content {
     padding: 2rem;
-    max-width: 1200px;
+    max-width: 1570px;
     margin: 0 auto;
 }
 
 .movies-header {
     display: flex;
+    margin-top: 5rem;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
 }
 
 .movies-header h1 {
@@ -75,45 +78,55 @@
 }
 
 .icon-button {
-    background: none;
-    border: none;
+    width: 2rem; 
+    height: 2rem; 
+    background: #323056; 
+    border: 1.5px solid rgb(255, 255, 255); 
+    border-radius: 4px;
     color: #ffffff;
     cursor: pointer;
-    font-size: 1.2rem;
-    padding: 0.5rem;
-    border-radius: 4px;
+    font-size: 1rem; 
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
     transition: all 0.3s ease;
 }
 
 .icon-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #635CC3;
+    opacity: 0.5;
+    
 }
 
 .movies-table {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: #211D54;
     border-radius: 8px;
     overflow: hidden;
+   
+    
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+
 }
 
 th, td {
-    padding: 1rem;
+    padding: 0.1rem 4rem;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 150px;
 }
 
 th {
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
+    font-weight: 150;
+    color: rgb(255, 255, 255);
+    padding: 1rem 4rem; 
 }
 
 td {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
 }
 
 tr:hover {
@@ -132,7 +145,8 @@ tr:hover {
 }
 
 .more-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: #635CC3;
+    opacity: 0.5;
 }
 
 .loading {
@@ -142,4 +156,24 @@ tr:hover {
     height: 100vh;
     color: #ffffff;
     font-size: 1.2rem;
+}
+
+th:nth-child(1), 
+td:nth-child(1) {
+    width: 50%;  
+}
+
+th:nth-child(2), 
+td:nth-child(2) {
+    width: 25%;  
+}
+
+th:nth-child(3), 
+td:nth-child(3) {
+    width: 20%;  
+}
+
+th:nth-child(4), 
+td:nth-child(4) {
+    width: 5%;  
 }
