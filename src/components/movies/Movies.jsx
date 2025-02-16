@@ -8,7 +8,7 @@ import MovieDropdown from './MovieDropdown';
 import MovieInfoModal from './MovieInfoModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api"
+const API_URL = process.env.REACT_APP_API_URL
 
 const Movies = () => {
     const navigate = useNavigate();
@@ -62,84 +62,58 @@ const Movies = () => {
         navigate('/login');
     };
 
-
-    const handleAddMovie = async (movieData) => {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            console.error('No token found, redirecting to login.');
-            navigate('/login');
-            return;
-        }
-        try {
-            const response = await fetch(`${API_URL}/movies`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(movieData)
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to add movie');
-            }
-            const data = await response.json();
-            return data;
-        } catch (err) {
-            console.error('Error adding movie:', err);
-        }
+    const handleAddMovie = () => {
+        setIsEditing(false);
+        setSelectedMovie(null);
+        setIsAddModalOpen(true);
     };
 
     const handleSaveMovie = async (movieData) => {
         const token = localStorage.getItem('accessToken');
+
         if (!token) {
             console.error('No token found, redirecting to login.');
             navigate('/login');
             return;
         }
-    
+
+        const formattedMovieData = {
+            ...movieData,
+            genres: movieData.genres.map(g => (typeof g === 'object' ? g.id : getGenreIdByName(g)))
+        };
+
         try {
-            const url = movieData.id 
-                ? `${API_URL}/movies/${movieData.id}` 
-                : `${API_URL}/movies`;
-            
-            const method = movieData.id ? 'PATCH' : 'POST';
-    
-            const response = await fetch(url, {
-                method: method,
+            const response = await fetch(`${API_URL}/movies/${movieData.id}`, {
+                method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(movieData)
+                body: JSON.stringify(formattedMovieData)
             });
-    
+
+            const data = await response.json();
+            console.log('Server response:', data);
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to save movie');
+                throw new Error(data.message || 'Failed to update movie');
             }
-    
-            const savedMovie = await response.json();
-    
-            setMovies(prevMovies => {
-                if (movieData.id) {
-                    return prevMovies.map(movie => 
-                        movie.id === savedMovie.id ? savedMovie : movie
-                    );
-                } else {
-                    return [...prevMovies, savedMovie];
-                }
-            });
-    
+
+            setMovies((prevMovies) =>
+                prevMovies.map((movie) =>
+                    movie.id === data.id ? data : movie
+                )
+            );
+
             setIsAddModalOpen(false);
             setIsEditing(false);
             setSelectedMovie(null);
-    
         } catch (err) {
-            console.error('Error saving movie:', err);
+            console.error('Error updating movie:', err);
             setError(err.message);
         }
     };
+
 
     const handleEditMovie = (movie) => {
         setIsEditing(true);
@@ -195,7 +169,6 @@ const Movies = () => {
         setIsInfoModalOpen(true);
     };
 
-    
     if (loading) {
         return (
             <div className="loading">
