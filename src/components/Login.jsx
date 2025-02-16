@@ -6,7 +6,7 @@ import { MdVpnKey } from "react-icons/md";
 
 
 const Login = () => {
-    const baseUrl = process.env.REACT_APP_BASE_URL;
+    const baseUrl = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
@@ -14,7 +14,17 @@ const Login = () => {
     });
     const [error, setError] = useState('');
 
-    if (localStorage.getItem('accessToken')) {
+    const isAuthenticated = localStorage.getItem('accessToken');
+
+    useEffect(() => {
+        const usernameInput = document.getElementById('username');
+        if (usernameInput) {
+            usernameInput.focus();
+        }
+        window.scrollTo(0, 0);
+    }, []);
+
+    if (isAuthenticated) {
         return <Navigate to="/statistics" />;
     }
 
@@ -27,31 +37,11 @@ const Login = () => {
     };
 
     const handleLogin = async (e) => {
-        const baseUrl = process.env.REACT_APP_BASE_URL;
-        console.log(baseUrl+"api/account/login");
         e.preventDefault();
         setError('');
 
-        if (formData.username === 'admin' && formData.password === 'admin') {
-            const mockUserData = {
-                accessToken: 'mock-token-12345',
-                user: {
-                    id: 1,
-                    username: 'admin',
-                    email: 'admin@example.com',
-                    role: 'admin'
-                }
-            };
-            
-            localStorage.setItem('accessToken', mockUserData.accessToken);
-            localStorage.setItem('user', JSON.stringify(mockUserData.user));
-            navigate('/statistics', { replace: true });
-            return;
-        }
-
         try {
-            console.log(baseUrl+'/api/account/login');
-            const response = await fetch(baseUrl+'/api/account/login', {
+            const response = await fetch(`${baseUrl}/account/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -60,16 +50,19 @@ const Login = () => {
             });
 
             const data = await response.json();
-            console.log(data);
-            if (response.ok) {
+
+            if (response.ok && data.accessToken) {
+    
                 localStorage.setItem('accessToken', data.accessToken);
                 localStorage.setItem('user', JSON.stringify(data.user));
+                
                 navigate('/statistics', { replace: true });
             } else {
                 setError(data.message || 'Login failed. Please check your credentials.');
             }
         } catch (err) {
-            setError('Incorrect username or password.');
+            console.error('Login error:', err);
+            setError('Server error. Please try again later.');
         }
     };
 
@@ -80,28 +73,28 @@ const Login = () => {
                     <h1>Log In</h1>
                     {error && <p className="error">{error}</p>}
                     <div className="input-box">
-                    <input
-                        type="text"
-                        name="username"
-                        placeholder="Username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        required
-                        autocomplete="off"
-                    />
-                        
+                        <input
+                            id="username"
+                            type="text"
+                            name="username"
+                            placeholder="Username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            required
+                            autoComplete="off"
+                        />
                         <FaRegUser className="icon" />
                     </div>
                     <div className="input-box">
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                        autocomplete="off"
-                    />
+                        <input
+                            type="password"
+                            name="password"
+                            placeholder="Password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            autoComplete="off"
+                        />
                         <MdVpnKey className="icon" />
                     </div>
                     <div className="remember-forgot">

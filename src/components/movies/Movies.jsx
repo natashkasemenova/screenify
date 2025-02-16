@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoMdAdd } from "react-icons/io";
 import './Movies.css';
+import { getGenreIdByName } from '../../utils/genreUtils';
 import AddMovieModal from './AddMovieModal';
 import MovieDropdown from './MovieDropdown';
 import MovieInfoModal from './MovieInfoModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
+
+const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api"
 
 const Movies = () => {
     const navigate = useNavigate();
@@ -26,46 +29,31 @@ const Movies = () => {
             return;
         }
 
-        //Mock data for testing*
-        const mockMovies = [
-            {
-                id: 1,
-                title: "The Shawshank Redemption",
-                genre: "Drama",
-                duration: "2h 22min",
-                cast: [
-                    { role: "Andy Dufresne", actor: "Tim Robbins" },
-                    { role: "Ellis Boyd 'Red' Redding", actor: "Morgan Freeman" }
-                ]
-                
-            },
-            {
-                id: 2,
-                title: "The Godfather",
-                genre: "Crime",
-                duration: "2h 55min",
-                cast: [
-                    { role: "Don Vito Corleone", actor: "Marlon Brando" },
-                    { role: "Michael Corleone", actor: "Al Pacino" }
-                ]
-            },
-            {
-                id: 3,
-                title: "The Dark Knight",
-                genre: "Action",
-                duration: "2h 32min",
-                cast: [
-                    { role: "Bruce Wayne", actor: "Christian Bale" },
-                    { role: "Joker", actor: "Heath Ledger" }
-                ]
-            }
-        ];
+        //  API
+        const fetchMovies = async () => {
+            try {
+                const response = await fetch(`${API_URL}/movies`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-        //Simulate API call*
-        setTimeout(() => {
-            setMovies(mockMovies);
-            setLoading(false);
-        }, 1000);
+                if (!response.ok) {
+                    throw new Error('Error loading films');
+                }
+
+                const data = await response.json();
+                setMovies(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMovies();
     }, [navigate]);
 
     const handleLogout = () => {
@@ -74,15 +62,83 @@ const Movies = () => {
         navigate('/login');
     };
 
-    const handleFilterClick = () => {
-        
-        console.log('Filter clicked');
+
+    const handleAddMovie = async (movieData) => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            console.error('No token found, redirecting to login.');
+            navigate('/login');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/movies`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(movieData)
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to add movie');
+            }
+            const data = await response.json();
+            return data;
+        } catch (err) {
+            console.error('Error adding movie:', err);
+        }
     };
 
-    const handleAddMovie = () => {
-        setIsEditing(false);
-        setSelectedMovie(null);
-        setIsAddModalOpen(true);
+    const handleSaveMovie = async (movieData) => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            console.error('No token found, redirecting to login.');
+            navigate('/login');
+            return;
+        }
+    
+        try {
+            const url = movieData.id 
+                ? `${API_URL}/movies/${movieData.id}` 
+                : `${API_URL}/movies`;
+            
+            const method = movieData.id ? 'PATCH' : 'POST';
+    
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(movieData)
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save movie');
+            }
+    
+            const savedMovie = await response.json();
+    
+            setMovies(prevMovies => {
+                if (movieData.id) {
+                    return prevMovies.map(movie => 
+                        movie.id === savedMovie.id ? savedMovie : movie
+                    );
+                } else {
+                    return [...prevMovies, savedMovie];
+                }
+            });
+    
+            setIsAddModalOpen(false);
+            setIsEditing(false);
+            setSelectedMovie(null);
+    
+        } catch (err) {
+            console.error('Error saving movie:', err);
+            setError(err.message);
+        }
     };
 
     const handleEditMovie = (movie) => {
@@ -96,43 +152,50 @@ const Movies = () => {
         setIsDeleteModalOpen(true);
     };
 
-    const confirmDelete = () => {
-        setMovies(movies.filter(m => m.id !== movieToDelete.id));
-        setIsDeleteModalOpen(false);
-        setMovieToDelete(null);
+    const confirmDelete = async () => {
+        if (!movieToDelete) return;
+
+        const token = localStorage.getItem('accessToken');
+
+        if (!token) {
+            console.error('No token found, redirecting to login.');
+            navigate('/login');
+            return;
+        }
+
+
+        console.log('Using token:', token); // Debugging
+
+        try {
+            const response = await fetch(`${API_URL}/movies/${movieToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.error('Server response:', errorResponse); // Debugging
+                throw new Error(errorResponse.message || 'Failed to delete movie');
+            }
+
+            setMovies((prevMovies) => prevMovies.filter((m) => m.id !== movieToDelete.id));
+            setIsDeleteModalOpen(false);
+            setMovieToDelete(null);
+        } catch (err) {
+            setError(err.message);
+        }
     };
+
 
     const handleShowInfo = (movie) => {
         setSelectedMovie(movie);
         setIsInfoModalOpen(true);
     };
 
-    const handleSaveMovie = (movieData) => {
-        if (isEditing) {
-            
-            setMovies(movies.map(movie => 
-                movie.id === selectedMovie.id 
-                ? { 
-                    ...movie,  
-                    ...movieData, 
-                    id: selectedMovie.id  
-                }
-                : movie
-            ));
-        } else {
-
-            const newMovie = {
-                id: Date.now(),
-                ...movieData
-            };
-            setMovies([...movies, newMovie]);
-        }
-        
-        setIsAddModalOpen(false);
-        setIsEditing(false);
-        setSelectedMovie(null);
-    };
-
+    
     if (loading) {
         return (
             <div className="loading">
@@ -158,7 +221,6 @@ const Movies = () => {
                     <li><a href="/rooms">Rooms</a></li>
                     <li><a href="/tickets">Tickets</a></li>
                     <li><a href="/reviews">Reviews</a></li>
-                    <li><a href="/statistics">Statistics</a></li>
                     <li><button onClick={handleLogout} className="logout-btn">LOG OUT</button></li>
                 </ul>
             </nav>
@@ -176,45 +238,47 @@ const Movies = () => {
                 <div className="movies-table">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Genre</th>
-                                <th>Duration</th>
-                                <th></th>
-                            </tr>
+                        <tr>
+                            <th>Title</th>
+                            <th>Genre</th>
+                            <th>Duration</th>
+                            <th></th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {movies.map((movie) => (
-                                <tr key={movie.id}>
-                                    <td>{movie.title}</td>
-                                    <td>{movie.genre}</td>
-                                    <td>{movie.duration}</td>
-                                    <td>
-                                        <MovieDropdown
-                                            movie={movie}
-                                            onEdit={handleEditMovie}
-                                            onDelete={handleDeleteMovie}
-                                            onInfo={handleShowInfo}
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
+                        {movies.map((movie) => (
+                            <tr key={movie.id}>
+                                <td>{movie.title}</td>
+                                <td>{movie.genres && Array.isArray(movie.genres) ? movie.genres.map(g => g.name).join(', ') : 'Unknown'}</td>
+                                <td>{movie.duration}</td>
+                                <td>
+                                    <MovieDropdown
+                                        movie={movie}
+                                        onEdit={handleEditMovie}
+                                        onDelete={handleDeleteMovie}
+                                        onInfo={handleShowInfo}
+                                    />
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
+
                     </table>
                 </div>
             </div>
 
-            <AddMovieModal 
+            <AddMovieModal
                 isOpen={isAddModalOpen}
                 onClose={() => {
                     setIsAddModalOpen(false);
                     setIsEditing(false);
                     setSelectedMovie(null);
                 }}
-                onSave={handleSaveMovie}
-                editingMovie={isEditing ? selectedMovie : null}
+                onSave={handleSaveMovie} // Now connected to API
+                editingMovie={isEditing ? selectedMovie || {} : null}
             />
-            
+
+
             <MovieInfoModal
                 isOpen={isInfoModalOpen}
                 onClose={() => {
@@ -230,7 +294,7 @@ const Movies = () => {
                     setIsDeleteModalOpen(false);
                     setMovieToDelete(null);
                 }}
-                onConfirm={confirmDelete}
+                onConfirm={confirmDelete} // Now connected to API
                 movieTitle={movieToDelete?.title || ''}
             />
         </div>
