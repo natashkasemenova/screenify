@@ -241,11 +241,10 @@ const Statistics = () => {
                                         <td>{stat.genre}</td>
                                         <td>{stat.ticketsSold}</td>
                                         <td>
-                                            <MovieDropdown 
-                                                movie={stat} 
-                                                disabled={true}
-                                            />
-                                        </td>
+                <div style={{ pointerEvents: 'none' }}>
+                  <MovieDropdown movie={stat} />
+                </div>
+              </td>
                                     </tr>
                                 ))}
                             </tbody>

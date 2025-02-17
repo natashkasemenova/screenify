@@ -22,9 +22,9 @@ const MovieInfoModal = ({ isOpen, onClose, movie }) => {
                 <div className={styles.modalBody}>
                     <div className={styles.imageSection}>
                         <div className={styles.imageContainer}>
-                            {movie.image ? (
+                            {movie.posterUrl ? (
                                 <img 
-                                    src={movie.image} 
+                                    src={movie.posterUrl} 
                                     alt={movie.title} 
                                     className={styles.movieImage} 
                                 />
@@ -49,22 +49,27 @@ const MovieInfoModal = ({ isOpen, onClose, movie }) => {
                         <div className={styles.infoGroup}>
                             <span className={styles.infoLabel}>Duration</span>
                             <span className={styles.infoValue}>
-                                {movie.duration || 'Duration not specified'}
+                                {movie.duration ? `${movie.duration} min` : 'Duration not specified'}
                             </span>
                         </div>
 
                         <div className={styles.castSection}>
                             <span className={styles.infoLabel}>Cast</span>
                             <div className={styles.castList}>
-                                {movie.cast && movie.cast.length > 0 ? (
-                                    movie.cast.map((member, index) => (
+                                {movie.actors && movie.actors.length > 0 ? (
+                                    movie.actors.map((actorInfo, index) => (
                                         <div key={index} className={styles.castItem}>
                                             <span className={styles.actorName}>
-                                                {member.actor}
+                                                {actorInfo.actor.name}
                                             </span>
-                                            {member.role && (
+                                            {actorInfo.characterName && (
                                                 <span className={styles.roleName}>
-                                                    as {member.role}
+                                                    as {actorInfo.characterName}
+                                                </span>
+                                            )}
+                                            {actorInfo.roleName?.roleName && (
+                                                <span className={styles.roleType}>
+                                                    ({actorInfo.roleName.roleName})
                                                 </span>
                                             )}
                                         </div>
@@ -88,4 +93,5 @@ const MovieInfoModal = ({ isOpen, onClose, movie }) => {
         </div>
     );
 };
+
 export default MovieInfoModal;

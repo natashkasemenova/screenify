@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Tickets.css';
+import MovieDropdown from '../movies/MovieDropdown';
 
 const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
 
@@ -124,6 +125,11 @@ const Tickets = () => {
                                         <td>{formatDate(ticket.startTime)}</td>
                                         <td>${ticket.price}</td>
                                         <td>{formatDate(ticket.transactionTime)}</td>
+                                        <td>
+                                        <div style={{ pointerEvents: 'none' }}>
+                  <MovieDropdown movie={ticket} />
+                </div>
+              </td>
                                     </tr>
                                 ))}
                             </tbody>
