@@ -13,8 +13,8 @@ const UsersInfoModal = ({ isOpen, onClose, user }) => {
                 </button>
 
                 <div className={styles.userImageContainer}>
-                    {user.image ? (
-                        <img src={user.image} alt={user.username} className={styles.userImage} />
+                    {user.photoUrl ? (
+                        <img src={user.photoUrl} alt={user.username} className={styles.userImage} />
                     ) : (
                         <div className={styles.userPlaceholder}>No Image</div>
                     )}

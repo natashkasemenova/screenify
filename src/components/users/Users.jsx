@@ -38,7 +38,7 @@ const Users = () => {
                 }
 
                 const userData = await response.json();
-                setUsers([userData]); 
+                setUsers([userData]);  
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -123,7 +123,7 @@ const Users = () => {
                                     <td>{index + 1}</td>
                                     <td>{user.username}</td>
                                     <td>{user.email}</td>
-                                    <td>{user.role}</td>
+                                    <td>{user.role.join(', ')}</td> 
                                     <td>
                                         <UserDropdown
                                             user={user}

@@ -61,7 +61,7 @@ const Reviews = () => {
                     id: review.id,
                     userId: review.appUserId, 
                     username: review.madeBy,   
-                    userImage: "/api/placeholder/74/74",
+                    userImage: review.photoUrl || "/api/placeholder/74/74", 
                     movieId: review.movieId,
                     movieTitle: `Movie ${review.movieId}`,
                     reviewText: review.comment,
