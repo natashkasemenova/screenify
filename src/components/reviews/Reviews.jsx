@@ -14,6 +14,10 @@ const Reviews = () => {
     const [error, setError] = useState('');
     const [filters, setFilters] = useState({
         movieId: '',
+        AppUserId: '' 
+    });
+    const [appliedFilters, setAppliedFilters] = useState({
+        movieId: '',
         AppUserId: ''
     });
 
@@ -26,15 +30,14 @@ const Reviews = () => {
 
         const fetchReviews = async () => {
             try {
-                // Construct URL with query parameters if they exist
                 let url = `${API_URL}/review`;
                 const queryParams = [];
                 
-                if (filters.movieId) {
-                    queryParams.push(`movieId=${filters.movieId}`);
+                if (appliedFilters.movieId && !isNaN(Number(appliedFilters.movieId))) {
+                    queryParams.push(`movieId=${Number(appliedFilters.movieId)}`);
                 }
-                if (filters.AppUserId) {
-                    queryParams.push(`AppUserId=${filters.AppUserId}`);
+                if (appliedFilters.AppUserId) {
+                    queryParams.push(`AppUserId=${encodeURIComponent(appliedFilters.AppUserId)}`);
                 }
                 
                 if (queryParams.length > 0) {
@@ -54,14 +57,13 @@ const Reviews = () => {
 
                 const reviewsData = await response.json();
 
-                // Transform the data to match the ReviewCard component expectations
                 const transformedReviews = reviewsData.map(review => ({
                     id: review.id,
-                    userId: review.madeBy,
-                    username: review.madeBy, // You might want to fetch user details separately
-                    userImage: "/api/placeholder/74/74", // Placeholder image
+                    userId: review.appUserId, 
+                    username: review.madeBy,   
+                    userImage: "/api/placeholder/74/74",
                     movieId: review.movieId,
-                    movieTitle: `Movie ${review.movieId}`, // You might want to fetch movie details separately
+                    movieTitle: `Movie ${review.movieId}`,
                     reviewText: review.comment,
                     rating: review.rating,
                     date: new Date(review.creationTime).toISOString().split('T')[0],
@@ -77,7 +79,7 @@ const Reviews = () => {
         };
 
         fetchReviews();
-    }, [navigate, filters]); // Add filters to dependency array to refetch when filters change
+    }, [navigate, appliedFilters]);
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -87,10 +89,26 @@ const Reviews = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        if (name === 'movieId') {
+            const numericValue = value === '' ? '' : Number(value);
+            setFilters(prev => ({
+                ...prev,
+                [name]: numericValue
+            }));
+        } else {
+            setFilters(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    const handleFilterClick = () => {
+        setAppliedFilters({
+            movieId: filters.movieId === '' ? '' : Number(filters.movieId),
+            AppUserId: filters.AppUserId
+        });
+        setLoading(true);
     };
 
     if (loading) {
@@ -131,7 +149,7 @@ const Reviews = () => {
                             <IoSearch className="search-icon" />
                             <input
                                 type="text"
-                                placeholder="User ID"
+                                placeholder="Enter User ID"
                                 name="AppUserId"
                                 value={filters.AppUserId}
                                 onChange={handleFilterChange}
@@ -141,14 +159,18 @@ const Reviews = () => {
                         <div className="input-with-icon">
                             <IoSearch className="search-icon" />
                             <input
-                                type="text"
-                                placeholder="Movie ID"
+                                type="number"
+                                placeholder="Enter Movie ID"
                                 name="movieId"
                                 value={filters.movieId}
                                 onChange={handleFilterChange}
                                 className="filter-input"
+                                min="1"
                             />
                         </div>
+                        <button className="filter-button" onClick={handleFilterClick}>
+                            <FiFilter /> Apply Filters
+                        </button>
                     </div>
                 </div>
 

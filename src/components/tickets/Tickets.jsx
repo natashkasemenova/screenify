@@ -1,11 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Tickets.css';
 import TicketDropdown from './TicketDropdown';
 import TicketsInfoModal from './TicketsInfoModal';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api"
 const Tickets = () => {
     const navigate = useNavigate();
     const [tickets, setTickets] = useState([]);
@@ -22,30 +20,22 @@ const Tickets = () => {
             return;
         }
 
-        const fetchTickets = async () => {
-            try {
-                const response = await fetch(`${API_URL}/ticket`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+        // Mock ticket data
+        const mockTickets = [
+            { 
+              id: 1, 
+              movie: "The Shawshank Redemption", 
+              room: "Room 1", 
+              startTime: "18:00", 
+              price: "$10",
+              imageUrl: "https://randomuser.me/api/portraits/men/1.jpg" 
+            },
+          ];
 
-                if (!response.ok) {
-                    throw new Error('Error loading tickets');
-                }
-
-                const data = await response.json();
-                setTickets(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchTickets();
+        setTimeout(() => {
+            setTickets(mockTickets);
+            setLoading(false);
+        }, 1000);
     }, [navigate]);
 
     const handleLogout = () => {
@@ -53,49 +43,7 @@ const Tickets = () => {
         localStorage.removeItem('user');
         navigate('/login');
     };
-/*
-    const handleDeleteTicket = (ticket) => {
-        setTicketToDelete(ticket);
-        setIsDeleteModalOpen(true);
-    };
 
-    const confirmDelete = async () => {
-        if (!ticketToDelete) return;
-
-        const token = localStorage.getItem('accessToken');
-
-        if (!token) {
-            console.error('No token found, redirecting to login.');
-            navigate('/login');
-            return;
-        }
-
-
-        console.log('Using token:', token);
-
-        try {
-            const response = await fetch(`${API_URL}/movies/${ticketToDelete.id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const errorResponse = await response.json();
-                console.error('Server response:', errorResponse);
-                throw new Error(errorResponse.message || 'Failed to cancel ticket');
-            }
-
-            setTickets((prevTickets) => prevTickets.filter((m) => m.id !== ticketToDelete.id));
-            setIsDeleteModalOpen(false);
-            setTicketToDelete(null);
-        } catch (err) {
-            setError(err.message);
-        }
-    };
-*/
     const handleShowInfo = (ticket) => {
         setSelectedTicket(ticket);
         setIsInfoModalOpen(true);
@@ -120,6 +68,7 @@ const Tickets = () => {
                     <li><a href="/rooms">Rooms</a></li>
                     <li><a href="/tickets" className="active">Tickets</a></li>
                     <li><a href="/reviews">Reviews</a></li>
+                    <li><a href="/statistics">Statistics</a></li>
                     <li><button onClick={handleLogout} className="logout-btn">LOG OUT</button></li>
                 </ul>
             </nav>
