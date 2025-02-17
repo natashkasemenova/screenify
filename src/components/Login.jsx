@@ -25,7 +25,7 @@ const Login = () => {
     }, []);
 
     if (isAuthenticated) {
-        return <Navigate to="/movies" />;
+        return <Navigate to="/statistics" />;
     }
 
     const handleChange = (e) => {

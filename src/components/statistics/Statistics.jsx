@@ -17,7 +17,7 @@ const Statistics = () => {
     const [statistics, setStatistics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [filterTrigger, setFilterTrigger] = useState(0); 
+    const [filterTrigger, setFilterTrigger] = useState(0); // Чтобы заставить useEffect реагировать на изменения фильтра
 
     const fetchStatisticsData = async (token, formattedStartDate, formattedEndDate) => {
         let endpoint;
@@ -53,7 +53,7 @@ const Statistics = () => {
     };
 
     const fetchMoviesData = async (token) => {
-        const response = await fetch(`${API_URL}/movies`, {
+        const response = await fetch(`${API_URL}/Movies`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
@@ -97,7 +97,6 @@ const Statistics = () => {
                 const formattedStartDate = startDate.toISOString();
                 const formattedEndDate = endDate.toISOString();
 
-            
                 const [statsData, moviesData, genresData] = await Promise.all([
                     fetchStatisticsData(token, formattedStartDate, formattedEndDate),
                     fetchMoviesData(token),
@@ -122,7 +121,7 @@ const Statistics = () => {
                             id: stat.movieId,
                             title: movie?.title || 'Unknown Movie',
                             movie: movie,
-                            image: movie?.image || "/api/placeholder/74/74"
+                            image: movie?.posterUrl || "/api/placeholder/74/74"  // Используем posterUrl для изображения
                         };
                     }
                 });
@@ -137,7 +136,7 @@ const Statistics = () => {
         };
 
         fetchData();
-    }, [navigate, selectedView, filterTrigger]); 
+    }, [navigate, selectedView, filterTrigger, startDate, endDate]);  // Добавляем startDate и endDate в зависимости
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -146,7 +145,7 @@ const Statistics = () => {
     };
 
     const handleFilter = () => {
-        setFilterTrigger(prev => prev + 1);
+        setFilterTrigger(prev => prev + 1); // Увеличиваем filterTrigger для повторного запроса
     };
 
     const handleViewChange = (e) => {
@@ -241,10 +240,10 @@ const Statistics = () => {
                                         <td>{stat.genre}</td>
                                         <td>{stat.ticketsSold}</td>
                                         <td>
-                <div style={{ pointerEvents: 'none' }}>
-                  <MovieDropdown movie={stat} />
-                </div>
-              </td>
+                                            <div style={{ pointerEvents: 'none' }}>
+                                                <MovieDropdown movie={stat} />
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
