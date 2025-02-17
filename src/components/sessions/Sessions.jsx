@@ -175,6 +175,7 @@ const Sessions = () => {
         setIsInfoModalOpen(true);
     };
 
+    
     if (loading) {
         return (
             <div className="loading">
