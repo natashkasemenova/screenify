@@ -5,7 +5,7 @@ import { IoSearch } from 'react-icons/io5';
 import './Reviews.css';
 import ReviewCard from './ReviewCard';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api"
+const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
 
 const Reviews = () => {
     const navigate = useNavigate();
@@ -13,8 +13,8 @@ const Reviews = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [filters, setFilters] = useState({
-        userId: '',
-        movieId: ''
+        movieId: '',
+        AppUserId: ''
     });
 
     useEffect(() => {
@@ -26,8 +26,22 @@ const Reviews = () => {
 
         const fetchReviews = async () => {
             try {
-                const response = await fetch(`${API_URL}/review`, {
-                    method: 'GET',
+                // Construct URL with query parameters if they exist
+                let url = `${API_URL}/review`;
+                const queryParams = [];
+                
+                if (filters.movieId) {
+                    queryParams.push(`movieId=${filters.movieId}`);
+                }
+                if (filters.AppUserId) {
+                    queryParams.push(`AppUserId=${filters.AppUserId}`);
+                }
+                
+                if (queryParams.length > 0) {
+                    url += `?${queryParams.join('&')}`;
+                }
+
+                const response = await fetch(url, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -38,8 +52,23 @@ const Reviews = () => {
                     throw new Error('Error loading reviews');
                 }
 
-                const data = await response.json();
-                setReviews(data);
+                const reviewsData = await response.json();
+
+                // Transform the data to match the ReviewCard component expectations
+                const transformedReviews = reviewsData.map(review => ({
+                    id: review.id,
+                    userId: review.madeBy,
+                    username: review.madeBy, // You might want to fetch user details separately
+                    userImage: "/api/placeholder/74/74", // Placeholder image
+                    movieId: review.movieId,
+                    movieTitle: `Movie ${review.movieId}`, // You might want to fetch movie details separately
+                    reviewText: review.comment,
+                    rating: review.rating,
+                    date: new Date(review.creationTime).toISOString().split('T')[0],
+                    likes: review.likes
+                }));
+
+                setReviews(transformedReviews);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -48,7 +77,7 @@ const Reviews = () => {
         };
 
         fetchReviews();
-    }, [navigate]);
+    }, [navigate, filters]); // Add filters to dependency array to refetch when filters change
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -62,17 +91,6 @@ const Reviews = () => {
             ...prev,
             [name]: value
         }));
-    };
-
-    const handleFilterClick = () => {
-        const filteredReviews = reviews.filter((review) => {
-            const userIdFilter = !filters.userId || review.userId.toString() === filters.userId;
-            const movieIdFilter = !filters.movieId || review.movieId.toString() === filters.movieId;
-            return userIdFilter && movieIdFilter;
-        });
-
-        setReviews(filteredReviews);
-        console.log('Applying filters:', filters);
     };
 
     if (loading) {
@@ -100,6 +118,7 @@ const Reviews = () => {
                     <li><a href="/rooms">Rooms</a></li>
                     <li><a href="/tickets">Tickets</a></li>
                     <li><a href="/reviews" className="active">Reviews</a></li>
+                    <li><a href="/statistics">Statistics</a></li>
                     <li><button onClick={handleLogout} className="logout-btn">LOG OUT</button></li>
                 </ul>
             </nav>
@@ -113,8 +132,8 @@ const Reviews = () => {
                             <input
                                 type="text"
                                 placeholder="User ID"
-                                name="userId"
-                                value={filters.userId}
+                                name="AppUserId"
+                                value={filters.AppUserId}
                                 onChange={handleFilterChange}
                                 className="filter-input"
                             />
@@ -130,9 +149,6 @@ const Reviews = () => {
                                 className="filter-input"
                             />
                         </div>
-                        <button className="filter-button" onClick={handleFilterClick}>
-                            <FiFilter /> Filter
-                        </button>
                     </div>
                 </div>
 
