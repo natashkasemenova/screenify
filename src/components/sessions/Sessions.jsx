@@ -4,14 +4,17 @@ import { FiFilter } from 'react-icons/fi';
 import { IoMdAdd } from "react-icons/io";
 import './Sessions.css';
 import AddSessionModal from './AddSessionModal';
-import MovieDropdown from '../movies/MovieDropdown'; 
-import MovieInfoModal from '../movies/MovieInfoModal'; 
-import DeleteConfirmationModal from '../movies/DeleteConfirmationModal'; 
+import MovieDropdown from '../movies/MovieDropdown';
+import MovieInfoModal from '../movies/MovieInfoModal';
+import DeleteConfirmationModal from '../movies/DeleteConfirmationModal';
 import FilterModal from './FilterModal';
+
+const API_URL =  process.env.REACT_APP_API_URL
 
 const Sessions = () => {
     const navigate = useNavigate();
     const [sessions, setSessions] = useState([]);
+    const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -29,36 +32,53 @@ const Sessions = () => {
             return;
         }
 
-        // Mock data for testing
-        const mockSessions = [
-            {
-                id: 1,
-                movieTitle: "The Shawshank Redemption",
-                date: "2024-02-15",
-                time: "19:00",
-                room: "Hall 1",
-                ticketTypes: [
-                    { type: "Standard", price: "10.00" },
-                    { type: "VIP", price: "15.00" }
-                ]
-            },
-            {
-                id: 2,
-                movieTitle: "The Godfather",
-                date: "2024-02-15",
-                time: "20:30",
-                room: "Hall 2",
-                ticketTypes: [
-                    { type: "Standard", price: "10.00" },
-                    { type: "VIP", price: "15.00" }
-                ]
-            }
-        ];
+        const fetchData = async () => {
+            try {
+                // Fetch both sessions and movies in parallel
+                const [sessionsResponse, moviesResponse] = await Promise.all([
+                    fetch(`${API_URL}/session`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    fetch(`${API_URL}/movies`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                ]);
 
-        setTimeout(() => {
-            setSessions(mockSessions);
-            setLoading(false);
-        }, 1000);
+                if (!sessionsResponse.ok || !moviesResponse.ok) {
+                    throw new Error('Error loading data');
+                }
+
+                const [sessionsData, moviesData] = await Promise.all([
+                    sessionsResponse.json(),
+                    moviesResponse.json()
+                ]);
+
+                // Create a map of movie IDs to movie titles for quick lookup
+                const movieMap = new Map(moviesData.map(movie => [movie.id, movie]));
+
+                // Combine session data with movie data
+                const enrichedSessions = sessionsData.map(session => ({
+                    ...session,
+                    movieTitle: movieMap.get(session.movieId)?.title || 'Unknown Movie',
+                    movie: movieMap.get(session.movieId)
+                }));
+
+                setSessions(enrichedSessions);
+                setMovies(moviesData);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, [navigate]);
 
     const handleLogout = () => {
@@ -77,6 +97,38 @@ const Sessions = () => {
         setIsAddModalOpen(true);
     };
 
+    const handleSaveSession = async (sessionData) => {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            console.error('No token found, redirecting to login.');
+            navigate('/login');
+            return;
+        }
+        try {
+            const response = await fetch(`${API_URL}/session/${sessionData.id ? sessionData.id : ''}`, {
+                method: sessionData.id ? 'PUT' : 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(sessionData)
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to save session');
+            }
+            if (sessionData.id) {
+                setSessions(prevSessions => prevSessions.map(session => session.id === data.id ? data : session));
+            } else {
+                setSessions(prevSessions => [...prevSessions, data]);
+            }
+            setIsAddModalOpen(false);
+        } catch (err) {
+            console.error('Error saving session:', err);
+            setError(err.message);
+        }
+    };
+
     const handleEditSession = (session) => {
         setIsEditing(true);
         setSelectedSession(session);
@@ -88,35 +140,39 @@ const Sessions = () => {
         setIsDeleteModalOpen(true);
     };
 
-    const confirmDelete = () => {
-        setSessions(sessions.filter(s => s.id !== sessionToDelete.id));
-        setIsDeleteModalOpen(false);
-        setSessionToDelete(null);
+    const confirmDelete = async () => {
+        if (!sessionToDelete) return;
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            console.error('No token found, redirecting to login.');
+            navigate('/login');
+            return;
+        }
+        console.log('Using token:', token); // Debugging
+        try {
+            const response = await fetch(`${API_URL}/session/${sessionToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.error('Server response:', errorResponse); // Debugging
+                throw new Error(errorResponse.message || 'Failed to delete movie');
+            }
+            setSessions((prevSessions) => prevSessions.filter((m) => m.id !== sessionToDelete.id));
+            setIsDeleteModalOpen(false);
+            setSessionToDelete(null);
+        } catch (err) {
+            setError(err.message);
+        }
     };
 
     const handleShowInfo = (session) => {
         setSelectedSession(session);
         setIsInfoModalOpen(true);
-    };
-
-    const handleSaveSession = (sessionData) => {
-        if (isEditing) {
-            setSessions(sessions.map(session => 
-                session.id === selectedSession.id 
-                ? { ...session, ...sessionData, id: selectedSession.id }
-                : session
-            ));
-        } else {
-            const newSession = {
-                id: Date.now(),
-                ...sessionData
-            };
-            setSessions([...sessions, newSession]);
-        }
-        
-        setIsAddModalOpen(false);
-        setIsEditing(false);
-        setSelectedSession(null);
     };
 
     if (loading) {
@@ -163,46 +219,41 @@ const Sessions = () => {
                 </div>
 
                 <div className="sessions-table">
-                <table>
-    <thead>
-        <tr>
-            <th>№</th>
-            <th>Movie Title</th>
-            <th>Room</th>
-            <th>Start Time</th>
-            <th>Price</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {sessions.map((session, index) => (
-            <tr key={session.id}>
-                <td>{index + 1}</td>
-                <td>{session.movieTitle}</td>
-                <td>{session.room}</td>
-                <td>{`${session.date} ${session.time}`}</td>
-                <td>
-                    {session.ticketTypes.length > 0 
-                        ? `$${session.ticketTypes[0].price}${session.ticketTypes.length > 1 ? '+' : ''}`
-                        : '-'
-                    }
-                </td>
-                <td>
-                    <MovieDropdown
-                        movie={session}
-                        onEdit={handleEditSession}
-                        onDelete={handleDeleteSession}
-                        onInfo={handleShowInfo}
-                    />
-                </td>
-            </tr>
-        ))}
-    </tbody>
-</table>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>№</th>
+                                <th>Movie Title</th>
+                                <th>Room</th>
+                                <th>Start Time</th>
+                                <th>Price</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sessions.map((session, index) => (
+                                <tr key={session.id}>
+                                    <td>{index + 1}</td>
+                                    <td>{session.movieTitle}</td>
+                                    <td>{session.roomId}</td>
+                                    <td>{session.startTime}</td>
+                                    <td>{session.price ? `$${session.price}` : '-'}</td>
+                                    <td>
+                                        <MovieDropdown
+                                            movie={session}
+                                            onEdit={handleEditSession}
+                                            onDelete={handleDeleteSession}
+                                            onInfo={() => handleShowInfo(session.movie)}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <AddSessionModal 
+            <AddSessionModal
                 isOpen={isAddModalOpen}
                 onClose={() => {
                     setIsAddModalOpen(false);
@@ -210,9 +261,9 @@ const Sessions = () => {
                     setSelectedSession(null);
                 }}
                 onSave={handleSaveSession}
-                editingSession={isEditing ? selectedSession : null}
+                editingSession={isEditing ? selectedSession || {} : null}
             />
-            
+
             <MovieInfoModal
                 isOpen={isInfoModalOpen}
                 onClose={() => {

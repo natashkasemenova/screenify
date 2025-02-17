@@ -1,40 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { IoMdClose } from "react-icons/io";
 import './AddSessionModal.css';
+import { getGenreIdByName } from '../../utils/genreUtils';
 
 const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
     const [sessionData, setSessionData] = useState({
         movieTitle: '',
         image: '',
-        genre: '',
+        genre: [],
         duration: '',
         date: '',
         time: '',
         room: '',
-        ticketTypes: [{ type: '', price: '' }]
+        price: ''
+        //ticketTypes: [{ type: '', price: '' }]
     });
     const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
             if (editingSession) {
-                setSessionData(editingSession);
+                setSessionData({
+                    id: editingSession.id || null,
+                    movieTitle: editingSession.movieTitle || '',
+                    image: editingSession.image || '',
+                    genre: Array.isArray(editingSession.genres) ? editingSession.genres : [],
+                    duration: editingSession.duration || '',
+                    date: editingSession.date || '',
+                    time: editingSession.time || '',
+                    room: editingSession.room || '',
+                    price: editingSession.price || '',
+                    //ticketTypes: editingSession.ticketTypes || [{ type: '', price: '' }],
+                })
                 setImagePreview(editingSession.image || null);
             } else {
                 setSessionData({
+                    id: null,
                     movieTitle: '',
                     image: '',
-                    genre: '',
+                    genre: [],
                     duration: '',
                     date: '',
                     time: '',
                     room: '',
-                    ticketTypes: [{ type: '', price: '' }]
+                    price: ''
+                    //ticketTypes: [{ type: '', price: '' }]
                 });
                 setImagePreview(null);
             }
         }
     }, [isOpen, editingSession]);
+
+    const handleSave = () => {
+        const formattedSessionData = {
+            ...sessionData,
+            genres: sessionData.genres.map(g => g.id),
+            ticketTypes: undefined  // Убираем ticketTypes
+        };
+
+        onSave(formattedSessionData);
+    };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -106,8 +131,17 @@ const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
                             <label>Genre</label>
                             <input 
                                 type="text" 
-                                value={sessionData.genre} 
-                                onChange={(e) => setSessionData(prev => ({ ...prev, genre: e.target.value }))} 
+                                value={sessionData.genres.map(g => (typeof g === 'object' ? g.name : g)).join(', ')}
+                                onChange={(e) => {
+                                    const genreNames = e.target.value.split(',').map(name => name.trim());
+                                    setSessionData(prev => ({
+                                        ...prev,
+                                        genres: genreNames.map(name => {
+                                            const genreId = getGenreIdByName(name);
+                                            return genreId ? { id: genreId, name } : { name };
+                                        })
+                                    }));
+                                }}
                             />
                         </div>
 
@@ -138,11 +172,11 @@ const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
                         </div>
 
                         <div className="input-group">
-                            <label>Room</label>
-                            <input 
-                                type="text" 
-                                value={sessionData.room}
-                                onChange={(e) => setSessionData(prev => ({ ...prev, room: e.target.value }))}
+                            <label>Price</label>
+                            <input
+                                type="number"
+                                value={sessionData.price}
+                                onChange={(e) => setSessionData(prev => ({ ...prev, price: e.target.value }))}
                             />
                         </div>
 
@@ -176,7 +210,7 @@ const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
 
                 <div className="modal-footer">
                     <button className="cancel-button" onClick={onClose}>Cancel</button>
-                    <button className="save-button" onClick={() => onSave(sessionData)}>Save</button>
+                    <button className="save-button" onClick={handleSave}>Save</button>
                 </div>
             </div>
         </div>

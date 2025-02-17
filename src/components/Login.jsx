@@ -6,7 +6,7 @@ import { MdVpnKey } from "react-icons/md";
 
 
 const Login = () => {
-    const baseUrl = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
+    const baseUrl = process.env.REACT_APP_API_URL;
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
@@ -52,10 +52,10 @@ const Login = () => {
             const data = await response.json();
 
             if (response.ok && data.accessToken) {
-    
+
                 localStorage.setItem('accessToken', data.accessToken);
                 localStorage.setItem('user', JSON.stringify(data.user));
-                
+
                 navigate('/statistics', { replace: true });
             } else {
                 setError(data.message || 'Login failed. Please check your credentials.');
