@@ -3,62 +3,132 @@ import { IoMdClose } from "react-icons/io";
 import './AddSessionModal.css';
 import { getGenreIdByName } from '../../utils/genreUtils';
 
+const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
+
 const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
     const [sessionData, setSessionData] = useState({
         movieTitle: '',
         image: '',
-        genre: [],
+        genres: [],
         duration: '',
         date: '',
         time: '',
-        room: '',
-        price: ''
-        //ticketTypes: [{ type: '', price: '' }]
+        roomName: '',
+        price: '',
+        ticketTypes: [{ type: '', price: '' }]
     });
     const [imagePreview, setImagePreview] = useState(null);
+    const [movies, setMovies] = useState([]);
+    const [rooms, setRooms] = useState([]);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         if (isOpen) {
+            fetchMoviesAndRooms();
             if (editingSession) {
+                const dateTime = new Date(editingSession.startTime);
                 setSessionData({
                     id: editingSession.id || null,
                     movieTitle: editingSession.movieTitle || '',
                     image: editingSession.image || '',
-                    genre: Array.isArray(editingSession.genres) ? editingSession.genres : [],
+                    genres: Array.isArray(editingSession.genres) ? editingSession.genres : [],
                     duration: editingSession.duration || '',
-                    date: editingSession.date || '',
-                    time: editingSession.time || '',
-                    room: editingSession.room || '',
+                    date: dateTime.toISOString().split('T')[0],
+                    time: dateTime.toTimeString().slice(0, 5),
+                    roomName: editingSession.roomName || '',
                     price: editingSession.price || '',
-                    //ticketTypes: editingSession.ticketTypes || [{ type: '', price: '' }],
-                })
+                    ticketTypes: editingSession.ticketTypes || [{ type: '', price: '' }],
+                });
                 setImagePreview(editingSession.image || null);
             } else {
-                setSessionData({
-                    id: null,
-                    movieTitle: '',
-                    image: '',
-                    genre: [],
-                    duration: '',
-                    date: '',
-                    time: '',
-                    room: '',
-                    price: ''
-                    //ticketTypes: [{ type: '', price: '' }]
-                });
-                setImagePreview(null);
+                resetForm();
             }
         }
     }, [isOpen, editingSession]);
 
-    const handleSave = () => {
-        const formattedSessionData = {
-            ...sessionData,
-            genres: sessionData.genres.map(g => g.id),
-            ticketTypes: undefined  // Убираем ticketTypes
-        };
+    const fetchMoviesAndRooms = async () => {
+        const token = localStorage.getItem('accessToken');
+        try {
+            const [moviesResponse, roomsResponse] = await Promise.all([
+                fetch(`${API_URL}/movies`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }),
+                fetch(`${API_URL}/rooms`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+            ]);
 
-        onSave(formattedSessionData);
+            if (!moviesResponse.ok || !roomsResponse.ok) {
+                throw new Error('Failed to fetch data');
+            }
+
+            const [moviesData, roomsData] = await Promise.all([
+                moviesResponse.json(),
+                roomsResponse.json()
+            ]);
+
+            setMovies(moviesData);
+            setRooms(roomsData);
+        } catch (err) {
+            setError('Failed to load movies and rooms');
+            console.error(err);
+        }
+    };
+
+    const resetForm = () => {
+        setSessionData({
+            movieTitle: '',
+            image: '',
+            genres: [],
+            duration: '',
+            date: '',
+            time: '',
+            roomName: '',
+            price: '',
+            ticketTypes: [{ type: '', price: '' }]
+        });
+        setImagePreview(null);
+        setError('');
+    };
+
+    const handleSave = async () => {
+        if (!sessionData.movieTitle || !sessionData.roomName || !sessionData.date || !sessionData.time || !sessionData.price) {
+            setError('Please fill in all required fields');
+            return;
+        }
+
+        try {
+            const selectedMovie = movies.find(m => m.title === sessionData.movieTitle);
+            const selectedRoom = rooms.find(r => r.name === sessionData.roomName);
+
+            if (!selectedMovie || !selectedRoom) {
+                setError('Invalid movie or room selection');
+                return;
+            }
+
+            const startTime = `${sessionData.date}T${sessionData.time}:00`;
+
+            const formattedData = {
+                id: sessionData.id,
+                movieId: selectedMovie.id,
+                roomId: selectedRoom.id,
+                startTime: startTime,
+                price: parseFloat(sessionData.price)
+            };
+
+            await onSave(formattedData);
+            onClose();
+            resetForm();
+        } catch (err) {
+            setError('Failed to save session');
+            console.error(err);
+        }
     };
 
     const handleImageChange = (e) => {
@@ -73,25 +143,6 @@ const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
         }
     };
 
-    const handleAddTicketType = () => {
-        setSessionData(prev => ({
-            ...prev,
-            ticketTypes: [...prev.ticketTypes, { type: '', price: '' }]
-        }));
-    };
-
-    const handleTicketTypeChange = (index, field, value) => {
-        const newTicketTypes = [...sessionData.ticketTypes];
-        newTicketTypes[index][field] = value;
-        setSessionData(prev => ({ ...prev, ticketTypes: newTicketTypes }));
-    };
-
-    const handleRemoveTicketType = (index) => {
-        setSessionData(prev => ({
-            ...prev,
-            ticketTypes: prev.ticketTypes.filter((_, i) => i !== index)
-        }));
-    };
 
     if (!isOpen) return null;
 
@@ -102,6 +153,8 @@ const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
                     <IoMdClose />
                 </button>
                 
+                {error && <div className="error-message">{error}</div>}
+
                 <div className="modal-body">
                     <div className="image-section">
                         <div className="image-upload-container">
@@ -121,10 +174,16 @@ const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
                             <label htmlFor="title">Title</label>
                             <input 
                                 id="title"
-                                type="text" 
-                                value={sessionData.movieTitle} 
-                                onChange={(e) => setSessionData(prev => ({ ...prev, movieTitle: e.target.value }))} 
+                                type="text"
+                                list="movies-list"
+                                value={sessionData.movieTitle}
+                                onChange={(e) => setSessionData(prev => ({ ...prev, movieTitle: e.target.value }))}
                             />
+                            <datalist id="movies-list">
+                                {movies.map(movie => (
+                                    <option key={movie.id} value={movie.title} />
+                                ))}
+                            </datalist>
                         </div>
 
                         <div className="input-group">
@@ -172,39 +231,32 @@ const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
                         </div>
 
                         <div className="input-group">
+                            <label>Room</label>
+                            <input
+                                type="text"
+                                list="rooms-list"
+                                value={sessionData.roomName}
+                                onChange={(e) => setSessionData(prev => ({ ...prev, roomName: e.target.value }))}
+                            />
+                            <datalist id="rooms-list">
+                                {rooms.map(room => (
+                                    <option key={room.id} value={room.name} />
+                                ))}
+                            </datalist>
+                        </div>
+
+                        <div className="input-group">
                             <label>Price</label>
                             <input
                                 type="number"
+                                min="0"
+                                step="0.01"
                                 value={sessionData.price}
                                 onChange={(e) => setSessionData(prev => ({ ...prev, price: e.target.value }))}
                             />
                         </div>
-
-                        <div className="ticket-types-section">
-                            <label>Ticket Price</label>
-                            {sessionData.ticketTypes.map((ticket, index) => (
-                                <div key={index} className="ticket-type">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Type" 
-                                        value={ticket.type} 
-                                        onChange={(e) => handleTicketTypeChange(index, 'type', e.target.value)} 
-                                    />
-                                    <input 
-                                        type="number" 
-                                        placeholder="Price" 
-                                        value={ticket.price} 
-                                        onChange={(e) => handleTicketTypeChange(index, 'price', e.target.value)} 
-                                    />
-                                    {sessionData.ticketTypes.length > 1 && (
-                                        <button className="remove-ticket" onClick={() => handleRemoveTicketType(index)}>×</button>
-                                    )}
-                                </div>
-                            ))}
-                            <button className="add-ticket-button" onClick={handleAddTicketType}>
-                                + Add Ticket Type
-                            </button>
-                        </div>
+                            
+                    
                     </div>
                 </div>
 

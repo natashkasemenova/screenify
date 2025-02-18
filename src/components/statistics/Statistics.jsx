@@ -17,7 +17,7 @@ const Statistics = () => {
     const [statistics, setStatistics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [filterTrigger, setFilterTrigger] = useState(0); // Чтобы заставить useEffect реагировать на изменения фильтра
+    const [filterTrigger, setFilterTrigger] = useState(0); 
 
     const fetchStatisticsData = async (token, formattedStartDate, formattedEndDate) => {
         let endpoint;
@@ -121,7 +121,7 @@ const Statistics = () => {
                             id: stat.movieId,
                             title: movie?.title || 'Unknown Movie',
                             movie: movie,
-                            image: movie?.posterUrl || "/api/placeholder/74/74"  // Используем posterUrl для изображения
+                            image: movie?.posterUrl || "/api/placeholder/74/74"  
                         };
                     }
                 });
@@ -136,7 +136,7 @@ const Statistics = () => {
         };
 
         fetchData();
-    }, [navigate, selectedView, filterTrigger, startDate, endDate]);  // Добавляем startDate и endDate в зависимости
+    }, [navigate, selectedView, filterTrigger, startDate, endDate]);  
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -145,7 +145,7 @@ const Statistics = () => {
     };
 
     const handleFilter = () => {
-        setFilterTrigger(prev => prev + 1); // Увеличиваем filterTrigger для повторного запроса
+        setFilterTrigger(prev => prev + 1); 
     };
 
     const handleViewChange = (e) => {
