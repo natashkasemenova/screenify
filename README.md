@@ -4,39 +4,39 @@
 
 ### `main screen & login`
 
-![Image](https://github.com/user-attachments/assets/f0776826-ae88-449f-a43a-f1f3febebe41)
+![Image](https://github.com/user-attachments/assets/597190c8-8439-4f0f-83fc-4d4857f3bc95)
 
-![Image](https://github.com/user-attachments/assets/363c0293-b2d1-4826-ae8b-d909d5d0ee9a)
+![Image](https://github.com/user-attachments/assets/cb5f1fac-30f1-40f8-9cdf-e6f9e860f861)
 
 ### `main movie info`
 
-![Image](https://github.com/user-attachments/assets/cb2d6cc7-6115-4993-b68f-a8b5bbe49864)
+![Image](https://github.com/user-attachments/assets/67fa3d0f-25a3-4e3e-ba4e-a453dd35ab88)
 
-![Image](https://github.com/user-attachments/assets/070fc69e-7573-4a17-a8fd-ced73b9f07c6)
+![Image](https://github.com/user-attachments/assets/13541a13-2198-4b98-862b-d710f2553786)
 
 ### `get all tickets in the system`
 
-![Image](https://github.com/user-attachments/assets/9e2fea8d-8ff4-437f-97b4-edd15a06567b)
+![Image](https://github.com/user-attachments/assets/311d656e-97e5-4896-a7f9-4cb7c76e1754)
 
 ### `use filter to get the date you need`
 
-![Image](https://github.com/user-attachments/assets/592bd264-693b-4544-8c70-01369135e784)
+![Image](https://github.com/user-attachments/assets/793cef5f-d8f5-4d56-ad8b-1aed11cdcc21)
 
 ### `user info`
 
-![Image](https://github.com/user-attachments/assets/9d0eb503-30fd-4d91-b22b-6a2cdc1cd122)
+![Image](https://github.com/user-attachments/assets/f437c47d-8935-44fb-9a91-e124aa13c230)
 
 ### `review`
 
-![Image](https://github.com/user-attachments/assets/11e9ec94-9dea-400c-a10f-0291af12d9ac)
+![Image](https://github.com/user-attachments/assets/7aa6b7e0-425a-415d-b0fa-8f45ea8ec3c6)
 
 ### `rooms`
 
-![Image](https://github.com/user-attachments/assets/d8e1d0e1-f2f0-4185-a698-120487bcfd9e)
+![Image](https://github.com/user-attachments/assets/185d7af4-93cc-480b-b01d-0409c5e384dd)
 
 ### `get statistics by date`
 
-![Image](https://github.com/user-attachments/assets/9e295f26-913d-402e-bd08-ee16a5944aaa)
+![Image](https://github.com/user-attachments/assets/07c984a1-301e-42dd-b600-c355dfc18522)
 
 # Getting Started with Create React App
 
