@@ -5,7 +5,7 @@ import UserDropdown from './UserDropdown';
 import DeleteConfirmationModal from '../movies/DeleteConfirmationModal';
 import UsersInfoModal from './UsersInfoModal';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Users = () => {
     const navigate = useNavigate();

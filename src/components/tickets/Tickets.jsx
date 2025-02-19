@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Tickets.css';
 import MovieDropdown from '../movies/MovieDropdown';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Tickets = () => {
     const navigate = useNavigate();

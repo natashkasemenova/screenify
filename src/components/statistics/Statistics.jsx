@@ -7,7 +7,7 @@ import MovieDropdown from '../movies/MovieDropdown';
 import MovieStatCard from './MovieStatCard';
 import './Statistics.css';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Statistics = () => {
     const navigate = useNavigate();

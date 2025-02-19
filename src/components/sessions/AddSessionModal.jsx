@@ -3,7 +3,7 @@ import { IoMdClose } from "react-icons/io";
 import './AddSessionModal.css';
 import { getGenreIdByName } from '../../utils/genreUtils';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const AddSessionModal = ({ isOpen, onClose, onSave, editingSession }) => {
     const [sessionData, setSessionData] = useState({

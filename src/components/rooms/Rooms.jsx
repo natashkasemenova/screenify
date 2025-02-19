@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Rooms.css';
 import { MdEventSeat } from 'react-icons/md';
 
-const API_URL = 'https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api';
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Rooms = () => {
   const navigate = useNavigate();

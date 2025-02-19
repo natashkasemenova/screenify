@@ -5,7 +5,7 @@ import { IoSearch } from 'react-icons/io5';
 import './Reviews.css';
 import ReviewCard from './ReviewCard';
 
-const API_URL = "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api";
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Reviews = () => {
     const navigate = useNavigate();

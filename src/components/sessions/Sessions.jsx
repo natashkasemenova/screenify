@@ -9,7 +9,7 @@ import MovieInfoModal from '../movies/MovieInfoModal';
 import DeleteConfirmationModal from '../movies/DeleteConfirmationModal';
 import FilterModal from './FilterModal';
 
-const API_URL =  "https://screenify-fzh4dgfpanbrbeea.polandcentral-01.azurewebsites.net/api"
+const API_URL =  process.env.REACT_APP_API_URL;
 
 const Sessions = () => {
     const navigate = useNavigate();
