@@ -1,3 +1,43 @@
+# Screenify :movie_camera: :purple_heart: :boom:
+
+## Admin panel on React
+
+### `main screen & login`
+
+![Image](https://github.com/user-attachments/assets/f0776826-ae88-449f-a43a-f1f3febebe41)
+
+![Image](https://github.com/user-attachments/assets/363c0293-b2d1-4826-ae8b-d909d5d0ee9a)
+
+### `main movie info`
+
+![Image](https://github.com/user-attachments/assets/cb2d6cc7-6115-4993-b68f-a8b5bbe49864)
+
+![Image](https://github.com/user-attachments/assets/070fc69e-7573-4a17-a8fd-ced73b9f07c6)
+
+### `get all tickets in the system`
+
+![Image](https://github.com/user-attachments/assets/9e2fea8d-8ff4-437f-97b4-edd15a06567b)
+
+### `use filter to get the date you need`
+
+![Image](https://github.com/user-attachments/assets/592bd264-693b-4544-8c70-01369135e784)
+
+### `user info`
+
+![Image](https://github.com/user-attachments/assets/9d0eb503-30fd-4d91-b22b-6a2cdc1cd122)
+
+### `review`
+
+![Image](https://github.com/user-attachments/assets/11e9ec94-9dea-400c-a10f-0291af12d9ac)
+
+### `rooms`
+
+![Image](https://github.com/user-attachments/assets/d8e1d0e1-f2f0-4185-a698-120487bcfd9e)
+
+### `get statistics by date`
+
+![Image](https://github.com/user-attachments/assets/9e295f26-913d-402e-bd08-ee16a5944aaa)
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
